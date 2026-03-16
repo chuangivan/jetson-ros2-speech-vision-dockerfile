@@ -1,6 +1,6 @@
 # ROS 2 Jetson Speech & Vision Ecosystem
 
-This is a Docker project and ROS 2 workspace (`new_speech_ws`) designed specifically for NVIDIA Jetson edge computing devices. The project combines ROS 2 Humble, PyTorch, various open-source speech recognition/synthesis packages (Whisper, Vosk), and YOLO object detection to provide an out-of-the-box edge AI robot/voice assistant development environment.
+This is a Docker project and ROS 2 workspace designed specifically for NVIDIA Jetson edge computing devices. The project combines ROS 2 Humble, PyTorch, various open-source speech recognition/synthesis packages (Whisper, Vosk), and YOLO object detection to provide an out-of-the-box edge AI robot/voice assistant development environment.
 
 ## ✨ Features
 
