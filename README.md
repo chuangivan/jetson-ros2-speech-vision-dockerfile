@@ -7,7 +7,7 @@ This is a Docker project and ROS 2 workspace designed specifically for NVIDIA Je
 - **Jetson Optimized Environment:** Based on NVIDIA's official inference image `dustynv/l4t-pytorch:r36.4.0` (with built-in PyTorch).
 - **ROS 2 Humble:** Includes the complete ROS 2 Humble Desktop and development toolkits (`ros-dev-tools`).
 - **Rich Speech and Audio Packages:** Pre-installed with `openai-whisper`, `vosk`, `speechbrain`, `webrtcvad`, `pyttsx3`, `pyaudio`, `sounddevice`, and pre-configured ALSA and PulseAudio audio transport layers.
-- **Computer Vision (YOLO):** Configured `ultralytics` in an isolated Python virtual environment (`yolo_env`) to avoid dependency conflicts.
+- **Computer Vision (YOLO):** Configured `ultralytics` in an isolated Python virtual environment to avoid dependency conflicts.
 - **Developer Friendly:**
   - Dedicated non-root user `appuser`.
   - Added to `audio` (microphone/speaker access) and `dialout` (USB Serial access) groups by default.
