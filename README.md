@@ -37,15 +37,16 @@ docker build -t jetson-ros2-speech -f Dockerfile-Jetson-Pytorch-ROS2 .
 To allow the container to access hardware such as the GPU, sound card, and serial ports, and for ease of development, use the following command to start the container:
 
 ```bash
-docker run -it --rm \
-    --runtime nvidia \
-    --network host \
-    --device /dev/snd \
-    --device /dev/bus/usb \
-    -v /run/udev:/run/udev:ro \
-    -v $(pwd)/new_speech_ws:/home/appuser/new_speech_ws \
-    jetson-ros2-speech \
-    /bin/bash
+docker run --runtime nvidia -it --rm \
+  --privileged \
+  --network host \
+  --device /dev/snd:/dev/snd \
+  --device /dev/bus/usb:/dev/bus/usb \
+  --group-add audio \
+  --group-add dialout \
+  --name speech_dev \
+  jetson-pytorch-ros2:latest \
+  /bin/bash
 ```
 
 > **Parameter Explanation:**
