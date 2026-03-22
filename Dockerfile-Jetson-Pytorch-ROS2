@@ -18,7 +18,9 @@ RUN add-apt-repository universe && apt update
 RUN apt install -y locales curl gnupg lsb-release software-properties-common portaudio19-dev python3-usb alsa-utils pulseaudio usbutils alsa-ucm-conf libusb-1.0-0-dev libasound2-plugins ffmpeg udev espeak espeak-ng python3-venv
 
 # 3. 安裝speech_ws需要的套件
-RUN pip3 install --no-cache-dir --index-url https://pypi.org/simple \
+RUN pip install --upgrade coverage --index-url https://pypi.org/simple \
+pip3 install --no-cache-dir --index-url https://pypi.org/simple \
+"huggingface_hub<0.22.0" \
 vosk webrtcvad openai-whisper speechbrain soundfile openai pyttsx3 \
 pycryptodome websocket-client pyaudio sounddevice
 
