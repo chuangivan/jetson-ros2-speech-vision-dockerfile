@@ -1,0 +1,82 @@
+FROM dustynv/l4t-pytorch:r36.4.0
+ENV TERM=xterm-256color
+
+RUN echo 'if [ -n "$PS1" ]; then' >> /root/.bashrc \
+ && echo '  export PS1='\''\[\033[38;5;214m\]\u@\h:\w\$ \[\033[0m\]'\''' >> /root/.bashrc \
+ && echo 'fi' >> /root/.bashrc
+
+# 使用 Bash 執行 RUN 命令
+SHELL ["/bin/bash", "-c"]
+
+# 設置全域環境變數
+ENV LANG=en_US.UTF-8
+
+# 1. 啟用 Universe 倉庫並更新
+RUN add-apt-repository universe && apt update
+
+# 2. 安裝基礎dependencies
+RUN apt install -y locales curl gnupg lsb-release software-properties-common portaudio19-dev python3-usb alsa-utils pulseaudio usbutils alsa-ucm-conf libusb-1.0-0-dev libasound2-plugins ffmpeg udev espeak espeak-ng python3-venv
+
+# 3. 安裝speech_ws需要的套件
+RUN pip3 install --upgrade coverage --index-url https://pypi.org/simple && \
+pip3 install --no-cache-dir --index-url https://pypi.org/simple \
+"huggingface_hub<0.22.0" \
+vosk webrtcvad openai-whisper speechbrain soundfile openai pyttsx3 \
+pycryptodome websocket-client pyaudio sounddevice gTTS pygame
+
+RUN pip3 install --no-cache-dir --index-url https://pypi.org/simple \
+ruamel.yaml.clib==0.2.7 ruamel.yaml==0.17.32 hyperpyyaml==1.0.0
+
+# 4. 安裝 pyserial（改用官方 PyPI，NGC 當備援）
+RUN python3 -m pip install --no-cache-dir --upgrade pip && \
+    pip3 install --no-cache-dir \
+      -i https://pypi.org/simple \
+      --extra-index-url https://pypi.ngc.nvidia.com \
+      pyserial
+    
+# 5. 設置 UTF-8 Locale
+RUN locale-gen en_US.UTF-8 && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+
+# 6. 添加 ROS 2 官方 apt key
+RUN mkdir -p /etc/apt/keyrings
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+    | gpg --dearmor -o /etc/apt/keyrings/ros-archive-keyring.gpg
+
+# 7. 添加 ROS 2 apt 源
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs)  main" \
+    > /etc/apt/sources.list.d/ros2.list
+
+# 8. 安裝 ROS 2 Humble 桌面版
+RUN apt update && apt install -y ros-humble-desktop ros-dev-tools
+
+# 9. 自動載入 ROS 環境
+RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
+
+# 10. 新增非 root 使用者，並加入 audio 群組
+RUN useradd -m appuser && usermod -aG audio appuser
+RUN groupadd -f dialout && usermod -aG dialout appuser
+
+# 以 root 身份寫入 /home/appuser/.bashrc
+USER root
+
+RUN echo 'if [ -n "$PS1" ]; then' >> /home/appuser/.bashrc \
+ && echo "  export PS1='\\[\033[38;5;129m\\]\\u@\\h:\\w\\$ \\[\\033[0m\\]'" >> /home/appuser/.bashrc \
+ && echo 'fi' >> /home/appuser/.bashrc \
+ && echo "source /opt/ros/humble/setup.bash" >> /home/appuser/.bashrc \
+ && chown appuser:appuser /home/appuser/.bashrc
+
+#以 appuser 身份執行
+USER appuser
+WORKDIR /home/appuser
+
+RUN python3 -m venv --system-site-packages /home/appuser/yolo_env && \
+    /home/appuser/yolo_env/bin/pip install --upgrade pip setuptools wheel -i https://pypi.org/simple && \
+    /home/appuser/yolo_env/bin/pip install --no-cache-dir -i https://pypi.org/simple ultralytics
+
+#11. 全域載入 ROS 環境（對所有登錄入 shell 生效）
+# 需要在構建上下文中提供 ros2_humble.sh，内容為：
+#   #!/bin/bash
+#   source /opt/ros/humble/setup.bash
+#COPY ros2_humble.sh /etc/profile.d/ros2_humble.sh
+
+
